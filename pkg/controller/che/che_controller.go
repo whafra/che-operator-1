@@ -206,7 +206,7 @@ type ReconcileChe struct {
 	client client.Client
 	// This client, is a simple client
 	// that reads objects without using the cache,
-	// to simply read objects thta we don't intend
+	// to simply read objects that we don't intend
 	// to further watch
 	nonCachedClient client.Client
 	scheme          *runtime.Scheme
