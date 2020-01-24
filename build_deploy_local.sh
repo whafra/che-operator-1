@@ -19,16 +19,17 @@ if [ -z "${1}" ]; then
   exit 1
 fi
 NAMESPACE=${1}
+LAST_VERSION=$(${BASE_DIR}/olm/versioning/lastCrdVersion.sh)
 
-docker build -t che/operator .
+docker build -t che/operator -f build/Dockerfile.
 kubectl apply -f ${BASE_DIR}/deploy/service_account.yaml -n="${NAMESPACE}"
 kubectl apply -f ${BASE_DIR}/deploy/role.yaml -n="${NAMESPACE}"
 kubectl apply -f ${BASE_DIR}/deploy/role_binding.yaml -n="${NAMESPACE}"
-kubectl apply -f ${BASE_DIR}/deploy/crds/org_v1_che_crd.yaml -n="${NAMESPACE}"
+kubectl apply -f ${BASE_DIR}/deploy/crds/org_"$LAST_VERSION"_che_crd.yaml -n="${NAMESPACE}"
 # sometimes the operator cannot get CRD right away
 sleep 2
 # uncomment when on OpenShift if you need login with OpenShift in Che
 #oc new-app -f ${BASE_DIR}/deploy/role_binding_oauth.yaml -p NAMESPACE="${NAMESPACE}" -n="${NAMESPACE}"
 #oc apply -f ${BASE_DIR}/deploy/cluster_role.yaml -n="${NAMESPACE}"
 kubectl apply -f ${BASE_DIR}/deploy/operator-local.yaml -n="${NAMESPACE}"
-kubectl apply -f ${BASE_DIR}/deploy/crds/org_v1_che_cr.yaml -n="${NAMESPACE}"
+kubectl apply -f ${BASE_DIR}/deploy/crds/org_"$LAST_VERSION"_che_cr.yaml -n="${NAMESPACE}"

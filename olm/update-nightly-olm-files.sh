@@ -16,6 +16,8 @@ CURRENT_DIR=$(pwd)
 BASE_DIR=$(cd "$(dirname "$0")"; pwd)
 source ${BASE_DIR}/check-yq.sh
 
+LAST_VERSION=$(${BASE_DIR}/versioning/lastCrdVersion.sh)
+
 for platform in 'kubernetes' 'openshift'
 do
   packageName=eclipse-che-preview-${platform}
@@ -35,18 +37,18 @@ do
   containerImage=$(sed -n 's|^ *image: *\([^ ]*/che-operator:[^ ]*\) *|\1|p' "${packageFolderPath}/${newNightlyPackageVersion}/${packageName}.v${newNightlyPackageVersion}.clusterserviceversion.yaml")
   createdAt=$(date -u +%FT%TZ)
   echo "   - Updating new package version fields:"
-  echo "       - containerImage => ${containerImage}" 
-  echo "       - createdAt => ${createdAt}" 
+  echo "       - containerImage => ${containerImage}"
+  echo "       - createdAt => ${createdAt}"
   sed \
   -e "s|containerImage:.*$|containerImage: ${containerImage}|" \
   -e "s/createdAt:.*$/createdAt: \"${createdAt}\"/" \
   "${packageFolderPath}/${newNightlyPackageVersion}/${packageName}.v${newNightlyPackageVersion}.clusterserviceversion.yaml" \
   > "${packageFolderPath}/${newNightlyPackageVersion}/${packageName}.v${newNightlyPackageVersion}.clusterserviceversion.yaml.new"
-  
+
   mv "${packageFolderPath}/${newNightlyPackageVersion}/${packageName}.v${newNightlyPackageVersion}.clusterserviceversion.yaml.new" \
   "${packageFolderPath}/${newNightlyPackageVersion}/${packageName}.v${newNightlyPackageVersion}.clusterserviceversion.yaml"
   echo "   - Copying the CRD file"
-  cp "${BASE_DIR}/../deploy/crds/org_v1_che_crd.yaml" "${packageFolderPath}/${newNightlyPackageVersion}/eclipse-che-preview-${platform}.crd.yaml"
+  cp "${BASE_DIR}/../deploy/crds/org_"$LAST_VERSION"_che_crd.yaml" "${packageFolderPath}/${newNightlyPackageVersion}/eclipse-che-preview-${platform}.crd.yaml"
   diff -u "${packageFolderPath}/${lastPackageVersion}/eclipse-che-preview-${platform}.crd.yaml" \
   "${packageFolderPath}/${newNightlyPackageVersion}/eclipse-che-preview-${platform}.crd.yaml" \
   > "${packageFolderPath}/${newNightlyPackageVersion}/eclipse-che-preview-${platform}.crd.yaml.diff" || true

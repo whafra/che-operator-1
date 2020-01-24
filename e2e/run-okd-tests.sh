@@ -23,6 +23,7 @@ IP_ADDRESS="172.17.0.1"
 
 SCRIPT=$(readlink -f "$0") # this script's absolute path
 SCRIPTPATH=$(dirname "$SCRIPT") # /path/to/e2e/ folder
+LAST_VERSION=$(${BASE_DIR}/olm/versioning/lastCrdVersion.sh)
 if [[ ${WORKSPACE} ]] && [[ -d ${WORKSPACE} ]]; then OPERATOR_REPO=${WORKSPACE}; else OPERATOR_REPO=$(dirname "$SCRIPTPATH"); fi
 
 # download oc client binary
@@ -42,7 +43,7 @@ rm -rf openshift.local.clusterup
 ./oc login -u developer -p password
 sleep 10
 echo "[INFO] Register a custom resource definition"
-./oc apply -f ${OPERATOR_REPO}/deploy/crds/org_v1_che_crd.yaml
+./oc apply -f ${OPERATOR_REPO}/deploy/crds/org_"$LAST_VERSION"_che_crd.yaml
 
 # generate self signed cert
 echo "[INFO] Generate self signed certificate"
