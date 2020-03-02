@@ -262,3 +262,19 @@ func (r *ReconcileChe) ReconcileIdentityProvider(instance *orgv1.CheCluster, isO
 	}
 	return false, nil
 }
+
+func (r *ReconcileChe) ReconcileoAuthProvider(instance *orgv1.CheCluster) (deleted bool, err error) {
+	if instance.Spec.Auth.OpenShiftoAuthProvider == false && instance.Status.OpenShiftoAuthProviderProvisioned == true {
+		oAuthClientName := instance.Spec.Auth.OpenShiftOAuthClientName
+		oAuthClient, err := r.GetOAuthClient(oAuthClientName)
+		if err != nil {
+			logrus.Errorf("OAuthClient %s not found: %s", oAuthClient.Name, err)
+		}
+		if err := r.client.Delete(context.TODO(), oAuthClient); err != nil {
+			logrus.Errorf("Failed to delete %s %s: %s", oAuthClient.Kind, oAuthClient.Name, err)
+		}
+		return true, nil
+	}
+	return false, nil
+}
+

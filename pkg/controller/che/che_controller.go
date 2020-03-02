@@ -699,6 +699,18 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 	}
 
+	if isOpenShift {
+		doInstallOpenShiftoAuthProvider := instance.Spec.Auth.OpenShiftoAuthProvider
+		if doInstallOpenShiftoAuthProvider {
+			openShiftoAuthProviderStatus := instance.Status.OpenShiftoAuthProviderProvisioned
+			if !openShiftoAuthProviderStatus {
+				if err := r.CreateOpenShiftOAuthProvider(instance); err != nil {
+					logrus.Error("Failed to create OpenShift oAuth client", err)
+				}
+			}
+		}
+	}
+
 	addRegistryRoute := func(registryType string) (string, error) {
 		registryName := registryType + "-registry"
 		host := ""
@@ -1161,12 +1173,16 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 	effectiveImagePullPolicy := string(effectiveCheDeployment.Spec.Template.Spec.Containers[0].ImagePullPolicy)
 	desiredSelfSignedCert := instance.Spec.Server.SelfSignedCert
 	desiredGitSelfSignedCert := instance.Spec.Server.GitSelfSignedCert
+	desiredOpenShiftoAuthProvider := instance.Spec.Auth.OpenShiftoAuthProvider
 	effectiveSelfSignedCert := r.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_SELF__SIGNED__CERT") != nil
 	effectiveGitSelfSignedCert := r.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_GIT_SELF__SIGNED__CERT") != nil
+	openshiftoAuthClient, err := r.GetOAuthClient(instance.Spec.Auth.OpenShiftOAuthClientName)
+	effectiveOpenShiftoAuthProvider := openshiftoAuthClient != nil
 	if desiredMemRequest.Cmp(effectiveMemRequest) != 0 ||
 		desiredMemLimit.Cmp(effectiveMemLimit) != 0 ||
 		effectiveImagePullPolicy != desiredImagePullPolicy ||
 		effectiveSelfSignedCert != desiredSelfSignedCert ||
+		desiredOpenShiftoAuthProvider != effectiveOpenShiftoAuthProvider ||
 		effectiveGitSelfSignedCert != desiredGitSelfSignedCert {
 		cheDeployment, err := deploy.NewCheDeployment(instance, cheImageAndTag, cmResourceVersion, isOpenShift)
 		if err != nil {
@@ -1190,6 +1206,14 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 			logrus.Errorf("Failed to update deployment: %s", err)
 			return reconcile.Result{}, err
 		}
+	}
+	// Delete OpenShift identity provider if OpenShift oAuth is false in spec
+	// but OpenShiftoAuthProvisioned is true in CR status, e.g. when oAuth has been turned on and then turned off
+	oAuthProviderdeleted, err := r.ReconcileoAuthProvider(instance)
+	if oAuthProviderdeleted {
+		instance.Status.OpenShiftoAuthProviderProvisioned = false
+		instance.Spec.Auth.OpenShiftOAuthSecret = ""
+		instance.Spec.Auth.OpenShiftOAuthClientName = ""
 	}
 	return reconcile.Result{}, nil
 }

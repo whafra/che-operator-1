@@ -303,6 +303,20 @@ type CheClusterSpecAuth struct {
 	// and have their workspaces created under personnal OpenShift namespaces.
 	// WARNING: the `kuebadmin` user is NOT supported, and logging through it will NOT allow accessing the Che Dashboard.
 	// +optional
+	OpenShiftoAuthProvider bool `json:"openShiftoAuthProvider"`
+	// Name of the OpenShift `OAuthClient` resource used to setup identity federation on the OpenShift side. Auto-generated if left blank.
+	// See also the `OpenShiftoAuth` field.
+	// +optional
+	OpenShiftOAuthClientName string `json:"openShiftOAuthClientName,omitempty"`
+	// Name of the secret set in the OpenShift `OAuthClient` resource used to setup identity federation on the OpenShift side. Auto-generated if left blank.
+	// See also the `OAuthClientName` field.
+	// +optional
+	OpenShiftOAuthSecret string `json:"openShiftOAuthSecret,omitempty"`
+	// Enables the integration of the identity provider (Keycloak / RHSSO) with OpenShift OAuth. Enabled by defaumt on OpenShift.
+	// This will allow users to directly login with their Openshift user throug the Openshift login,
+	// and have their workspaces created under personnal OpenShift namespaces.
+	// WARNING: the `kuebadmin` user is NOT supported, and logging through it will NOT allow accessing the Che Dashboard.
+	// +optional
 	OpenShiftoAuth bool `json:"openShiftoAuth"`
 	// Name of the OpenShift `OAuthClient` resource used to setup identity federation on the OpenShift side. Auto-generated if left blank.
 	// See also the `OpenShiftoAuth` field.
@@ -396,6 +410,9 @@ type CheClusterStatus struct {
 	// Indicates whether an Identity Provider instance (Keycloak / RH SSO) has been configured to integrate with the OpenShift OAuth.
 	// +optional
 	OpenShiftoAuthProvisioned bool `json:"openShiftoAuthProvisioned"`
+	// Indicates whether an Identity Provider instance (Keycloak / RH SSO) has been configured to integrate with the OpenShift OAuth.
+	// +optional
+	OpenShiftoAuthProviderProvisioned bool `json:"openShiftoAuthProviderProvisioned"`
 	// Status of a Che installation. Can be `Available`, `Unavailable`, or `Available, Rolling Update in Progress`
 	// +optional
 	CheClusterRunning string `json:"cheClusterRunning"`

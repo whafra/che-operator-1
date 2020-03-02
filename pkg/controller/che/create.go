@@ -296,7 +296,24 @@ func (r *ReconcileChe) CreateIdentityProviderItems(instance *orgv1.CheCluster, r
 	}
 	keycloakURL := instance.Spec.Auth.IdentityProviderURL
 	keycloakRealm := util.GetValue(instance.Spec.Auth.IdentityProviderRealm, cheFlavor)
-	oAuthClient := deploy.NewOAuthClient(oAuthClientName, oauthSecret, keycloakURL, keycloakRealm, isOpenShift4)
+	providerName := "openshift-v3"
+	if isOpenShift4 {
+		providerName = "openshift-v4"
+	}
+
+	redirectURLSuffix := "/auth/realms/" + keycloakRealm +"/broker/" + providerName + "/endpoint"
+	redirectURIs := []string{
+		keycloakURL + redirectURLSuffix,
+	}
+
+	keycloakURL = strings.NewReplacer("https://", "", "http://", "").Replace(keycloakURL)
+	if ! strings.Contains(keycloakURL, "://") {
+		redirectURIs = []string{
+			"http://" + keycloakURL + redirectURLSuffix,
+			"https://" + keycloakURL + redirectURLSuffix,
+		}
+	}
+	oAuthClient := deploy.NewOAuthClient(oAuthClientName, oauthSecret, redirectURIs)
 	if err := r.CreateNewOauthClient(instance, oAuthClient); err != nil {
 		return err
 	}
@@ -326,6 +343,25 @@ func (r *ReconcileChe) CreateIdentityProviderItems(instance *orgv1.CheCluster, r
 		}
 		return nil
 	}
+	return nil
+}
+
+func (r *ReconcileChe) CreateOpenShiftOAuthProvider(instance *orgv1.CheCluster) (err error) {
+	oAuthClientName := instance.Spec.Auth.OpenShiftOAuthClientName
+	if len(oAuthClientName) < 1 {
+		oAuthClientName = instance.Name + "-openshift-identity-provider-" + strings.ToLower(util.GeneratePasswd(6))
+		instance.Spec.Auth.OpenShiftOAuthClientName = oAuthClientName
+	}
+	oauthSecret := instance.Spec.Auth.OpenShiftOAuthSecret
+	if len(oauthSecret) < 1 {
+		oauthSecret = util.GeneratePasswd(12)
+		instance.Spec.Auth.OpenShiftOAuthSecret = oauthSecret
+	}
+	oAuthClient := deploy.NewOAuthClient(oAuthClientName, oauthSecret, []string { instance.Status.CheURL + "/api/oauth/callback" })
+	if err := r.CreateNewOauthClient(instance, oAuthClient); err != nil {
+		return err
+	}
+	instance.Status.OpenShiftoAuthProviderProvisioned = true
 	return nil
 }
 
