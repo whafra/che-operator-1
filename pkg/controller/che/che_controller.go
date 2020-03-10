@@ -1181,17 +1181,18 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 	desiredSelfSignedCert := instance.Spec.Server.SelfSignedCert
 	desiredCustomPublicCerts := instance.Spec.Server.ServerTrustStoreConfigMapName != ""
 	desiredGitSelfSignedCert := instance.Spec.Server.GitSelfSignedCert
+	effectiveSelfSignedCert := util.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_SELF__SIGNED__CERT") != nil
 	effectiveCustomPublicCerts := r.GetDeploymentVolume(effectiveCheDeployment, "che-public-certs").ConfigMap != nil
 	desiredOpenShiftoAuthProvider := instance.Spec.Auth.OpenShiftoAuthProvider
-	effectiveSelfSignedCert := r.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_SELF__SIGNED__CERT") != nil
-	effectiveGitSelfSignedCert := r.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_GIT_SELF__SIGNED__CERT") != nil
+	effectiveGitSelfSignedCert := util.GetDeploymentEnvVarSource(effectiveCheDeployment, "CHE_GIT_SELF__SIGNED__CERT") != nil
 	openshiftoAuthClient, err := r.GetOAuthClient(instance.Spec.Auth.OpenShiftOAuthClientName)
 	effectiveOpenShiftoAuthProvider := openshiftoAuthClient != nil
 	if desiredMemRequest.Cmp(effectiveMemRequest) != 0 ||
 		desiredMemLimit.Cmp(effectiveMemLimit) != 0 ||
 		effectiveImagePullPolicy != desiredImagePullPolicy ||
 		effectiveSelfSignedCert != desiredSelfSignedCert ||
-		desiredOpenShiftoAuthProvider != effectiveOpenShiftoAuthProvider ||
+		effectiveOpenShiftoAuthProvider != desiredOpenShiftoAuthProvider ||
+		effectiveCustomPublicCerts != desiredCustomPublicCerts ||
 		effectiveGitSelfSignedCert != desiredGitSelfSignedCert {
 		cheDeployment, err := deploy.NewCheDeployment(instance, cheImageAndTag, cmResourceVersion, isOpenShift)
 		if err != nil {
