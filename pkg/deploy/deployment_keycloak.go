@@ -48,6 +48,11 @@ func NewKeycloakDeployment(cr *orgv1.CheCluster, keycloakPostgresPassword string
 		"keytool -importcert -alias OPENSHIFTAPI" +
 		" -keystore " + jbossDir + "/openshift.jks" +
 		" -file " + jbossDir + "/openshift.crt -storepass " + trustpass + " -noprompt; fi"
+	// certificate for keycloak to reach sso / oauth endpoints
+	addSSOCrt := "if [ ! -z \"${SSO_SELF__SIGNED__CERT}\" ]; then echo \"${SSO_SELF__SIGNED__CERT}\" > " + jbossDir + "/sso.crt && " +
+		"keytool -importcert -alias SSOCRT" +
+		" -keystore " + jbossDir + "/openshift.jks" +
+		" -file " + jbossDir + "/sso.crt -storepass " + trustpass + " -noprompt; fi"
 	// certificate mounted into container /var/run/secrets
 	addMountedCrt := " keytool -importcert -alias MOUNTEDCRT" +
 		" -keystore " + jbossDir + "/openshift.jks" +
@@ -60,7 +65,7 @@ func NewKeycloakDeployment(cr *orgv1.CheCluster, keycloakPostgresPassword string
 		" -destkeystore " + jbossDir + "/openshift.jks" +
 		" -srcstorepass changeit -deststorepass " + trustpass
 
-	addCertToTrustStoreCommand := addRouterCrt + " && " + addOpenShiftAPICrt + " && " + addMountedCrt + " && " + addMountedServiceCrt + " && " + importJavaCacerts
+	addCertToTrustStoreCommand := addRouterCrt + " && " + addOpenShiftAPICrt + " && " + addSSOCrt + " && " + addMountedCrt + " && " + addMountedServiceCrt + " && " + importJavaCacerts
 
 	// upstream Keycloak has a bit different mechanism of adding jks
 	changeConfigCommand := "echo Installing certificates into Keycloak && " +
@@ -180,6 +185,18 @@ func NewKeycloakDeployment(cr *orgv1.CheCluster, keycloakPostgresPassword string
 				},
 			},
 		},
+		{
+			Name: "SSO_SELF__SIGNED__CERT",
+			ValueFrom: &corev1.EnvVarSource{
+				SecretKeyRef: &corev1.SecretKeySelector{
+					Key: "ca.crt",
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "sso-ca-crt",
+					},
+					Optional: &optionalEnv,
+				},
+			},
+		},
 	}
 	if cheFlavor == "codeready" {
 		keycloakEnv = []corev1.EnvVar{
@@ -254,6 +271,18 @@ func NewKeycloakDeployment(cr *orgv1.CheCluster, keycloakPostgresPassword string
 						Key: "ca.crt",
 						LocalObjectReference: corev1.LocalObjectReference{
 							Name: "openshift-api-crt",
+						},
+						Optional: &optionalEnv,
+					},
+				},
+			},
+			{
+				Name: "SSO_SELF__SIGNED__CERT",
+				ValueFrom: &corev1.EnvVarSource{
+					SecretKeyRef: &corev1.SecretKeySelector{
+						Key: "ca.crt",
+						LocalObjectReference: corev1.LocalObjectReference{
+							Name: "sso-ca-crt",
 						},
 						Optional: &optionalEnv,
 					},
