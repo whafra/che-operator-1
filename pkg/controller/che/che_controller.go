@@ -333,6 +333,20 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 				return reconcile.Result{RequeueAfter: time.Second * 1}, err
 			}
 			logrus.Info("OpenShift cluster wide proxy is used.")
+
+			if clusterProxy.Spec.TrustedCA.Name != "" {
+				if instance.Spec.Server.ServerTrustStoreConfigMapName == "" {
+					instance.Spec.Server.ServerTrustStoreConfigMapName = "dd"
+					if err := r.UpdateCheCRSpec(instance, "Server Trust Store configmap", instance.Spec.Server.ServerTrustStoreConfigMapName); err != nil {
+						return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 1}, err
+					}
+				}
+				_, err := deploy.SyncCertConfigMapToCluster(instance, clusterAPI)
+				if err != nil {
+					logrus.Error(err)
+					return reconcile.Result{}, err
+				}
+			}
 		}
 	}
 
@@ -1098,16 +1112,15 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 
 	// create Che ConfigMap which is synced with CR and is not supposed to be manually edited
 	// controller will reconcile this CM with CR spec
-	cheEnv := deploy.GetConfigMapData(instance, proxy)
-	configMapStatus := deploy.SyncConfigMapToCluster(instance, cheEnv, clusterAPI)
+	cheConfigMap, err := deploy.SyncCheConfigMapToCluster(instance, clusterAPI, proxy)
 	if !tests {
-		if !configMapStatus.Continue {
+		if cheConfigMap == nil {
 			logrus.Infof("Waiting on config map '%s' to be created", cheFlavor)
-			if configMapStatus.Err != nil {
-				logrus.Error(configMapStatus.Err)
+			if err != nil {
+				logrus.Error(err)
 			}
 
-			return reconcile.Result{Requeue: configMapStatus.Requeue}, configMapStatus.Err
+			return reconcile.Result{}, err
 		}
 	}
 
@@ -1117,7 +1130,7 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 	if tests {
 		cmResourceVersion = r.GetEffectiveConfigMap(instance, deploy.CheConfigMapName).ResourceVersion
 	} else {
-		cmResourceVersion = configMapStatus.ConfigMap.ResourceVersion
+		cmResourceVersion = cheConfigMap.ResourceVersion
 	}
 
 	// Create a new che deployment

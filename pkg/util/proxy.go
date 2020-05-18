@@ -38,7 +38,6 @@ type Proxy struct {
 	HttpsHost     string
 	NoProxy       string
 
-	CaCert    string
 	HttpsPort string
 }
 
