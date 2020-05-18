@@ -57,8 +57,7 @@ func GetSpecConfigMap(
 	data map[string]string,
 	clusterAPI ClusterAPI) (*corev1.ConfigMap, error) {
 
-	cheFlavor := util.GetValue(checluster.Spec.Server.CheFlavor, DefaultCheFlavor)
-	labels := GetLabels(checluster, cheFlavor)
+	labels := GetLabels(checluster, DefaultCheFlavor(checluster))
 	configMap := &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",

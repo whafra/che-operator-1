@@ -336,7 +336,7 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 
 			if clusterProxy.Spec.TrustedCA.Name != "" {
 				if instance.Spec.Server.ServerTrustStoreConfigMapName == "" {
-					instance.Spec.Server.ServerTrustStoreConfigMapName = "dd"
+					instance.Spec.Server.ServerTrustStoreConfigMapName = deploy.DefaultCheServerCertConfigMap()
 					if err := r.UpdateCheCRSpec(instance, "Server Trust Store configmap", instance.Spec.Server.ServerTrustStoreConfigMapName); err != nil {
 						return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 1}, err
 					}

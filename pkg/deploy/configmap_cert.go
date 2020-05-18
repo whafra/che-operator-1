@@ -48,8 +48,8 @@ func SyncCertConfigMapToCluster(checluster *orgv1.CheCluster, clusterAPI Cluster
 		return nil, err
 	}
 
-	if clusterConfigMap.ObjectMeta.Labels["config.openshift.io/inject-trusted-cabundle"] == "" {
-		clusterConfigMap.ObjectMeta.Labels["config.openshift.io/inject-trusted-cabundle"] = "true"
+	if !reflect.DeepEqual(clusterConfigMap.ObjectMeta.Labels, specConfigMap.ObjectMeta.Labels) {
+		clusterConfigMap.ObjectMeta.Labels = specConfigMap.ObjectMeta.Labels
 		logrus.Infof("Updating existed object: %s, name: %s", specConfigMap.Kind, specConfigMap.Name)
 		err := clusterAPI.Client.Update(context.TODO(), clusterConfigMap)
 		return nil, err
