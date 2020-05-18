@@ -291,6 +291,10 @@ type CheClusterSpecAuth struct {
 	// By default this will be automatically calculated and set by the operator.
 	// +optional
 	IdentityProviderURL string `json:"identityProviderURL,omitempty"`
+	// Indicates that Identity Provider server (Keycloak) requires tls connection.
+	// In this case `IdentityProviderURL` public url will be used to configure it.
+	// +optional
+	IdentityProviderTlsRequired bool `json:"identityProviderTlsRequired,omitempty"`
 	// Overrides the name of the Identity Provider admin user. Defaults to `admin`.
 	// +optional
 	IdentityProviderAdminUserName string `json:"identityProviderAdminUserName,omitempty"`
@@ -475,7 +479,7 @@ type CheCluster struct {
 	// several config maps that will contain the appropriate environment variables
 	// the various components of the Che installation.
 	// These generated config maps should NOT be updated manually.
-	Spec   CheClusterSpec   `json:"spec,omitempty"`
+	Spec CheClusterSpec `json:"spec,omitempty"`
 
 	// CheClusterStatus defines the observed state of Che installation
 	Status CheClusterStatus `json:"status,omitempty"`

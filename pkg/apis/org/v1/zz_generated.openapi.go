@@ -136,6 +136,13 @@ func schema_pkg_apis_org_v1_CheClusterSpecAuth(ref common.ReferenceCallback) com
 							Format:      "",
 						},
 					},
+					"identityProviderTlsRequired": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Indicates that Identity Provider server (Keycloak) requires tls connection. In this case `IdentityProviderURL` public url will be used to configure it.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 					"identityProviderAdminUserName": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Overrides the name of the Identity Provider admin user. Defaults to `admin`.",

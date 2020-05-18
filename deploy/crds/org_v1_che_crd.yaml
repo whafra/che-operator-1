@@ -122,6 +122,11 @@ spec:
                     will be created with default value `admin` for `user` and with
                     an auto-generated value for `password`.'
                   type: string
+                identityProviderTlsRequired:
+                  description: Indicates that Identity Provider server (Keycloak)
+                    requires tls connection. In this case `IdentityProviderURL` public
+                    url will be used to configure it.
+                  type: boolean
                 identityProviderURL:
                   description: Public URL of the Identity Provider server (Keycloak
                     / RH SSO server). You should set it ONLY if you use an external

@@ -87,7 +87,7 @@ func getSpecKeycloakDeployment(
 	if clusterDeployment != nil {
 		env := clusterDeployment.Spec.Template.Spec.Containers[0].Env
 		for _, e := range env {
-			if "TRUSTPASS" == e.Name {
+			if "TRUSTPASS" == e.Name || "SSO_TRUSTSTORE_PASSWORD" == e.Name {
 				trustpass = e.Value
 				break
 			}
@@ -227,7 +227,15 @@ func getSpecKeycloakDeployment(
 			Value: "keycloak",
 		},
 		{
-			Name:  "TRUSTPASS",
+			Name:  "SSO_TRUSTSTORE",
+			Value: "openshift.jks",
+		},
+		{
+			Name:  "SSO_TRUSTSTORE_DIR",
+			Value: jbossDir,
+		},
+		{
+			Name:  "SSO_TRUSTSTORE_PASSWORD",
 			Value: trustpass,
 		},
 		{
