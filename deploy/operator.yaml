@@ -51,11 +51,11 @@ spec:
             - name: IMAGE_default_devfile_registry
               value: registry.redhat.io/codeready-workspaces/devfileregistry-rhel8:2.1
             - name: IMAGE_default_pvc_jobs
-              value: registry.access.redhat.com/ubi8-minimal:8.1-398
+              value: registry.access.redhat.com/ubi8-minimal:8.1-409
             - name: IMAGE_default_postgres
-              value: registry.redhat.io/rhscl/postgresql-96-rhel7:1-47
+              value: registry.redhat.io/rhscl/postgresql-96-rhel7:1-57
             - name: IMAGE_default_keycloak
-              value: registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-15
+              value: registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-34
             - name: IMAGE_default_che_workspace_plugin_broker_metadata
               value: registry.redhat.io/codeready-workspaces/pluginbroker-metadata-rhel8:2.1
             - name: IMAGE_default_che_workspace_plugin_broker_artifacts
