@@ -25,7 +25,7 @@ const (
 	cheServerImageTest       = "registry.redhat.io/codeready-workspaces/server-rhel8:2.1"
 	pluginRegistryImageTest  = "registry.redhat.io/codeready-workspaces/pluginregistry-rhel8:2.1"
 	devfileRegistryImageTest = "registry.redhat.io/codeready-workspaces/devfileregistry-rhel8:2.1"
-	pvcJobsImageTest         = "registry.access.redhat.com/ubi8-minimal:8.1-409"
+	pvcJobsImageTest         = "registry.access.redhat.com/ubi8-minimal:8.2-267"
 	postgresImageTest        = "registry.redhat.io/rhscl/postgresql-96-rhel7:1-57"
 	keycloakImageTest        = "registry.redhat.io/redhat-sso-7/sso73-openshift:1.0-34"
 	brokerMetadataTest		 = "registry.redhat.io/codeready-workspaces/pluginbroker-metadata-rhel8:2.1"
