@@ -19,6 +19,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+const (
+	injector = "config.openshift.io/inject-trusted-cabundle"
+)
+
 func SyncTrustStoreConfigMapToCluster(checluster *orgv1.CheCluster, clusterAPI ClusterAPI) (*corev1.ConfigMap, error) {
 	name := checluster.Spec.Server.ServerTrustStoreConfigMapName
 	specConfigMap, err := GetSpecConfigMap(checluster, name, map[string]string{}, clusterAPI)
@@ -27,7 +31,7 @@ func SyncTrustStoreConfigMapToCluster(checluster *orgv1.CheCluster, clusterAPI C
 	}
 
 	// OpenShift will automatically injects all certs into the configmap
-	specConfigMap.ObjectMeta.Labels["config.openshift.io/inject-trusted-cabundle"] = "true"
+	specConfigMap.ObjectMeta.Labels[injector] = "true"
 
 	clusterConfigMap, err := getClusterConfigMap(specConfigMap.Name, specConfigMap.Namespace, clusterAPI.Client)
 	if err != nil {
@@ -40,8 +44,8 @@ func SyncTrustStoreConfigMapToCluster(checluster *orgv1.CheCluster, clusterAPI C
 		return nil, err
 	}
 
-	if clusterConfigMap.ObjectMeta.Labels["config.openshift.io/inject-trusted-cabundle"] != "true" {
-		clusterConfigMap.ObjectMeta.Labels["config.openshift.io/inject-trusted-cabundle"] = "true"
+	if clusterConfigMap.ObjectMeta.Labels[injector] != "true" {
+		clusterConfigMap.ObjectMeta.Labels[injector] = "true"
 		logrus.Infof("Updating existed object: %s, name: %s", specConfigMap.Kind, specConfigMap.Name)
 		err := clusterAPI.Client.Update(context.TODO(), clusterConfigMap)
 		return nil, err

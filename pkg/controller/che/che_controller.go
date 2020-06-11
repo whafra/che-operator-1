@@ -315,18 +315,21 @@ func (r *ReconcileChe) Reconcile(request reconcile.Request) (reconcile.Result, e
 		}
 	}
 
+	// Read proxy configuration
 	proxy, err := r.getProxyConfiguration(instance)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Errorf("Error on reading proxy configuration: %v", err)
 		return reconcile.Result{}, err
 	}
 
 	if proxy.TrustedCAMapName != "" {
 		provisioned, err := r.putOpenShiftCertsIntoConfigMap(instance, proxy, clusterAPI)
 		if !provisioned {
-			logrus.Infof("Waiting on provisioning OpenShift certificates into '%s' config map", instance.Spec.Server.ServerTrustStoreConfigMapName)
+			configMapName := instance.Spec.Server.ServerTrustStoreConfigMapName
 			if err != nil {
-				logrus.Error(err)
+				logrus.Errorf("Error on provisioning config map '%s': %v", configMapName, err)
+			} else {
+				logrus.Infof("Waiting on provisioning config map '%s'", configMapName)
 			}
 			return reconcile.Result{}, err
 		}
