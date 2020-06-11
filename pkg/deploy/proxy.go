@@ -28,7 +28,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ReadClusterWideProxyConfiguration(clusterProxy *configv1.Proxy) (*Proxy, error) {
+func ReadClusterWideProxyConfiguration(clusterProxy *configv1.Proxy, noProxy string) (*Proxy, error) {
 	proxy := &Proxy{}
 
 	// Cluster components consume the status values to configure the proxy for their component.
@@ -38,6 +38,11 @@ func ReadClusterWideProxyConfiguration(clusterProxy *configv1.Proxy) (*Proxy, er
 		proxy.HttpsProxy = proxy.HttpProxy
 	}
 	proxy.NoProxy = clusterProxy.Status.NoProxy
+	if proxy.NoProxy == "" {
+		proxy.NoProxy = noProxy
+	} else if noProxy != "" {
+		proxy.NoProxy += "," + noProxy
+	}
 
 	httpProxy, err := url.Parse(proxy.HttpProxy)
 	if err != nil {

@@ -33,14 +33,20 @@ func (r *ReconcileChe) getProxyConfiguration(checluster *orgv1.CheCluster) (*dep
 			return nil, err
 		}
 
-		// proxy configuration in CR overrides cluster proxy configuration
+		// If proxy configuration exists in CR then cluster wide proxy configuration is ignored
+		// otherwise cluster wide proxy configuration is used and non proxy hosts
+		// are merted with defined ones in CR
 		if proxy.HttpProxy == "" && clusterProxy.Status.HTTPProxy != "" {
-			proxy, err = deploy.ReadClusterWideProxyConfiguration(clusterProxy)
+			proxy, err = deploy.ReadClusterWideProxyConfiguration(clusterProxy, proxy.NoProxy)
 			if err != nil {
 				return nil, err
 			}
-
 		}
+	}
+
+	if util.IsOpenShift {
+		publicHostname, err := util.GetClusterPublicHostname()
+
 	}
 
 	return proxy, nil
