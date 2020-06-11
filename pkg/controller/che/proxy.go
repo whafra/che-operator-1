@@ -44,11 +44,6 @@ func (r *ReconcileChe) getProxyConfiguration(checluster *orgv1.CheCluster) (*dep
 		}
 	}
 
-	if util.IsOpenShift {
-		publicHostname, err := util.GetClusterPublicHostname()
-
-	}
-
 	return proxy, nil
 }
 
